@@ -35,7 +35,7 @@
     "boilerplate"
   ],
   "devDependencies": {
-    "@captaincodeman/rdx": "^1.0.0-alpha.1",
+    "@captaincodeman/rdx": "^1.0.0-alpha.2",
     "@captaincodeman/router": "^1.0.0-alpha.3",
     "browser-sync": "^2.26.7",
     "chai": "^4.2.0",
@@ -43,8 +43,8 @@
     "conditional-type-checks": "^1.0.4",
     "dtslint": "^2.0.2",
     "mocha": "^6.2.2",
-    "redux-devtools-extension": "^2.13.8",
     "rollup": "^1.27.5",
+    "rollup-plugin-node-resolve": "^5.2.0",
     "rollup-plugin-size": "^0.2.0",
     "rollup-plugin-terser": "^5.1.2",
     "rollup-plugin-typescript": "^1.0.1",

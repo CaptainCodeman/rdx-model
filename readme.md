@@ -8,3 +8,7 @@ to reduce the boilerplate required when using a redux-like state store.
 
 See [redesigning-redux](https://hackernoon.com/redesigning-redux-b2baee8b8a38)
 for more background.
+
+## Usage
+
+Docs and example to follow, when API is more stable and typings refined.

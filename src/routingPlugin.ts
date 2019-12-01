@@ -1,4 +1,4 @@
-import createMatcher, { Routes, Matcher, Result } from '@captaincodeman/router'
+import { Matcher, Result } from '@captaincodeman/router'
 import { Plugin } from "../typings";
 import { createModel } from 'createModel';
 import { Store } from '@captaincodeman/rdx';
@@ -10,8 +10,8 @@ export interface Routing {
   replace(href: string): void;
 }
 
-export const routingPluginFactory = (routes: Routes, options?: any) => {
-  // options: whether to include querystring object in routing state (?)
+export const routingPluginFactory = (router: Matcher) => {
+  // TODO: pass options, e.g. whether to include querystring object in routing state (?)
 
   return {
     state: {
@@ -37,10 +37,7 @@ export const routingPluginFactory = (routes: Routes, options?: any) => {
     },
 
     onStore(_store: Store) {
-      const router = createMatcher(routes)
-      const dispatch = this.dispatcher
-
-      startListener(router, dispatch)
+      startListener(router, this.dispatcher)
     }
   } as Plugin
 }
@@ -55,6 +52,7 @@ function startListener(router: Matcher, dispatch: any) {
 
   // although we could populate the initial route at create time
   // it makes things easier if the app can listen for "route changes"
+  // in a consistent way without special-casing it
   routeChanged()
 
   // TODO: provide handler as a strategy pattern as part of config
@@ -65,6 +63,10 @@ function startListener(router: Matcher, dispatch: any) {
     if ((e.button && e.button !== 0) || e.metaKey || e.altKey || e.ctrlKey ||  e.shiftKey || e.defaultPrevented) {
       return
     }
+
+    // TODO: we could possibly shave off a few bytes for basic use-cases by allowing the 
+    // special handling of download and mailto links to be opt-in as a behavior ...
+    // ... but probably not worth it
 
     // ignore non-anchor clicks, window target, download and external links
     const anchor = <HTMLAnchorElement>e.composedPath().find(n => (n as HTMLElement).tagName === 'A')//[0]
@@ -92,6 +94,9 @@ function startListener(router: Matcher, dispatch: any) {
   })
 }
 
+// parseQuery creates an additional object based on querystring parameters
+// not every app will use this though so we can save adding it by making it
+// optional
 function parseQuery(params: URLSearchParams) {
   const q: { [key: string]: string | string[] } = {}
   for (const p of params.entries()) {
