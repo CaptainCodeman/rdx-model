@@ -1,14 +1,7 @@
-import { Matcher, Result } from '@captaincodeman/router'
-import { Plugin } from "../typings";
+import { Matcher } from '@captaincodeman/router'
+import { Plugin, RoutingState } from "../typings";
 import { createModel } from 'createModel';
 import { Store } from '@captaincodeman/rdx';
-
-export type RoutingState = NonNullable<Result>
-
-export interface Routing {
-  push(href: string): void;
-  replace(href: string): void;
-}
 
 export const routingPluginFactory = (router: Matcher) => {
   // TODO: pass options, e.g. whether to include querystring object in routing state (?)

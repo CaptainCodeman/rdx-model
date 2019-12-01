@@ -1,4 +1,5 @@
 import { Dispatch, Store } from "@captaincodeman/rdx"
+import { Result, Matcher } from "@captaincodeman/router"
 
 export type Context = {
   dispatch: Dispatch
@@ -74,4 +75,17 @@ export type ConfigModels<C extends Config> = C['models']
 
 export interface RemodeledStore<M extends Models = Models> extends Store<RootState<M>> {
   models: Dispatcher<M>
+}
+
+export declare function createStore<C extends Config>(config: C): RemodeledStore<ConfigModels<C>>
+
+export declare function createModel<S = any>(model: Model<S>): S
+
+export declare function  routingPluginFactory(router: Matcher): Plugin
+
+export type RoutingState = NonNullable<Result>
+
+export interface Routing {
+  push(href: string): void;
+  replace(href: string): void;
 }
