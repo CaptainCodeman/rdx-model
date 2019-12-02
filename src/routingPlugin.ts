@@ -35,18 +35,13 @@ export const routingPluginFactory = (router: Matcher) => {
   } as Plugin
 }
 
-function startListener(router: Matcher, dispatch: any) {
+async function startListener(router: Matcher, dispatch: any) {
   // listen for route changes
   const routeChanged = () => {
     const route = router(location.pathname)
     dispatch.routing.change(route)
   }
   window.addEventListener('popstate', routeChanged)
-
-  // although we could populate the initial route at create time
-  // it makes things easier if the app can listen for "route changes"
-  // in a consistent way without special-casing it
-  routeChanged()
 
   // TODO: provide handler as a strategy pattern as part of config
   // so consumer can chose whether to import the full or partial impl
@@ -85,6 +80,14 @@ function startListener(router: Matcher, dispatch: any) {
   window.addEventListener('DOMContentLoaded', () => {
     window.document.body.addEventListener('click', handler)
   })
+
+  // although we could populate the initial route at create time
+  // it makes things easier if the app can listen for "route changes"
+  // in a consistent way without special-casing it. We await so that
+  // if the devtools middleware is being added, this initial dispatch
+  // can be captured
+  await Promise.resolve()
+  routeChanged()
 }
 
 // parseQuery creates an additional object based on querystring parameters
