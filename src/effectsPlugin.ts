@@ -38,6 +38,8 @@ export const effectsPlugin: Plugin = {
       const { action } = (<CustomEvent<StoreEvent>>e).detail
       const effects = this.effects[action.type!]
       if (effects) {
+        // allow triggering dispatch to run first (?)
+        await Promise.resolve()
         await Promise.all(effects.map(effect => effect(action.payload, store.state, store.dispatch)))
       }
     })
