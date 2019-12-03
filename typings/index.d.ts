@@ -79,7 +79,7 @@ export interface RemodeledStore<M extends Models = Models> extends Store<RootSta
 
 export declare function createStore<C extends Config>(config: C): RemodeledStore<ConfigModels<C>>
 
-export declare function createModel<S = any>(model: Model<S>): S
+export declare function createModel<S>(model: Model<S>): Model<S>
 
 export declare function  routingPluginFactory(router: Matcher): Plugin
 
