@@ -19,7 +19,7 @@ export type Models = {
   [name: string]: Model
 }
 
-export type Effect<S = any, P = any> = (this: Reducers<S>, payload: P, getState: () => any, dispatch: Dispatch) => void
+export type Effect<S = any, P = any> = (this: Reducers<S>, payload: P, state: any, dispatch: Dispatch) => void
 
 export type Effects<S> = {
   [key: string]: Effect<S>
