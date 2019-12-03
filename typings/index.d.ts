@@ -54,7 +54,7 @@ export type ModelsDispatchers<M extends Models> = {
 export type Dispatcher<M extends Models> = ModelsDispatchers<M>
 
 export interface Plugin {
-  // if the model adds any state to the store, it needs a name and model
+  // if the plugin adds any state to the store, it needs a name and model
   state?: {
     name: string
     model: Model
