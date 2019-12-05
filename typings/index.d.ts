@@ -89,3 +89,5 @@ export interface Routing {
   push(href: string): void;
   replace(href: string): void;
 }
+
+export const routingChange = 'routing/change'

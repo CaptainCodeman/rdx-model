@@ -1,6 +1,6 @@
 import { Plugin, Model } from "../typings";
 import { createDispatcher } from "./dispatchPlugin";
-import { Dispatch, StoreEvent, Store } from "@captaincodeman/rdx";
+import { Dispatch, Store, Action } from "@captaincodeman/rdx";
 
 export const effectsPlugin: Plugin = {
   onInit() {
@@ -35,7 +35,7 @@ export const effectsPlugin: Plugin = {
     // TODO: if any model had an 'init' effect, execute it automatically to provide
     // an easy "run this on startup" for any model (e.g. to pre-load data or whatever)
     store.addEventListener('state', async e => {
-      const { action } = (<CustomEvent<StoreEvent>>e).detail
+      const action = (<CustomEvent<Action>>e).detail
       const effects = this.effects[action.type!]
       if (effects) {
         // allow triggering dispatch to run first (?)
