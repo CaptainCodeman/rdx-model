@@ -1,15 +1,17 @@
-import { Dispatch, Store } from "@captaincodeman/rdx"
+import { Dispatch, Store, GetState } from "@captaincodeman/rdx"
 import { Result, Matcher } from "@captaincodeman/router"
 
 export type Context = {
   dispatch: Dispatch
+  getState: GetState<any>
   [key: string]: any
 }
 
 export type Model<S = any> = {
   state: S
   reducers: Reducers<S>
-  effects?: Effects<S>
+  // TODO: getState should be dealing with *root* state, hwo do we define that?
+  effects?: (dispatch: Dispatch, getState: GetState<any>) => Effects<S>
   [key: string]: any
 }
 
@@ -19,7 +21,7 @@ export type Models = {
   [name: string]: Model
 }
 
-export type Effect<S = any, P = any> = (this: Reducers<S>, payload: P, state: any, dispatch: Dispatch) => void
+export type Effect<S = any, P = any> = (this: Reducers<S>, payload: P) => void
 
 export type Effects<S> = {
   [key: string]: Effect<S>
@@ -74,6 +76,7 @@ export interface Config {
 export type ConfigModels<C extends Config> = C['models']
 
 export interface RemodeledStore<M extends Models = Models> extends Store<RootState<M>> {
+  dispatch: Dispatch & Dispatcher<M>
   models: Dispatcher<M>
 }
 

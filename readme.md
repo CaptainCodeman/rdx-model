@@ -16,7 +16,7 @@ Docs and example to follow, when API is more stable and typings refined.
 ## Plans
 
 WebWorker plugin to workerize the state store
-Saga middleware plugin as alternative to thunks
+Saga middleware plugin as alternative to effects / thunks
 
 ## Notes
 

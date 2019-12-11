@@ -49,6 +49,7 @@ export const createStore = <C extends Config>(config: C): RemodeledStore<ConfigM
   const store = <RemodeledStore<ConfigModels<C>>>new Store(initialState, reducer)
 
   context.dispatch = store.dispatch.bind(store)
+  context.getState = () => store.state
 
   // initialize plugins
   plugins.forEach(plugin => {
