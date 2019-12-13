@@ -4,7 +4,7 @@ import { actionType } from "actionType";
 export const createDispatcher = (context: Context, name: string, key: string) => {
   const type = actionType(name, key)
   context.dispatcher[name][key] = (payload?: any): any => {
-    const action = { type, ...(payload && { payload }) }
+    const action = { type, ...(payload !== undefined && { payload }) }
     return context.dispatch(action)
   }
   return type
