@@ -1,13 +1,13 @@
 import { actionType } from 'actionType';
 import { dispatchPlugin } from 'dispatchPlugin';
 import { effectsPlugin } from 'effectsPlugin';
-import { Config, RemodeledStore, ConfigModels, Plugin, Dispatcher, Context } from '../typings';
-import { Store, combineReducers, Action, Reducer } from '@captaincodeman/rdx';
+import { Config, Store, ConfigModels, Plugin, Context } from '../typings';
+import { Store as RdxStore, combineReducers, Action, Reducer } from '@captaincodeman/rdx';
 
 // TODO: should effectsPlugin be 'core'? What if we provide a saga plugin instead?
 const corePlugins: Plugin[] = [dispatchPlugin, effectsPlugin]
 
-export const createStore = <C extends Config>(config: C): RemodeledStore<ConfigModels<C>> => {
+export const createStore = <C extends Config>(config: C): Store<ConfigModels<C>> => {
   // TODO: context should be divided into store level and model level
   const context = {} as Context
   const plugins = [...corePlugins, ...config.plugins || []]
@@ -45,7 +45,7 @@ export const createStore = <C extends Config>(config: C): RemodeledStore<ConfigM
   // create store
   const reducer = combineReducers(reducers)
   const initialState = config && config.state
-  const store = <RemodeledStore<ConfigModels<C>>>new Store(initialState, reducer)
+  const store = <Store<ConfigModels<C>>>new RdxStore(initialState, reducer)
 
   context.dispatch = store.dispatch.bind(store)
   context.getState = () => store.state
@@ -55,7 +55,7 @@ export const createStore = <C extends Config>(config: C): RemodeledStore<ConfigM
     plugin.onStore && plugin.onStore.call(context, store)
   })
 
-  store.models = context.dispatcher  as Dispatcher<ConfigModels<C>>
+  Object.assign(store.dispatch, context.dispatcher)
 
   return store
 }

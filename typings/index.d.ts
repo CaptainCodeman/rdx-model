@@ -1,63 +1,60 @@
-import { Dispatch, Store, GetState } from "@captaincodeman/rdx"
+import { Store as RdxStore, Dispatch, GetState } from "@captaincodeman/rdx"
 import { Result, Matcher } from "@captaincodeman/router"
+
+export type Action<P = void> = P extends void ? () => void : (payload: P) => void
+
+export type ActionFromReducer<S, R extends Reducer<S>> = R extends Reducer<S, void> 
+  ? Action<void>
+  : R extends Reducer<any, infer P>
+    ? Action<P>
+    : never
+
+export type ActionsFromReducer<S, R extends Reducers<S>> = { [K in keyof R]: ActionFromReducer<S, R[K]> }
+
+export type Reducer<S, P = any> = (state: S, payload: P) => S
+
+export type Reducers<S> = { [key: string]: Reducer<S> }
+
+export type Effect<P = any> = (payload: P) => void
+
+export type Effects = { [key: string]: Effect }
+
+export type ActionFromEffect<R extends Effect> = R extends Effect<void> 
+  ? Action<void>
+  : R extends Effect<infer P>
+    ? Action<P>
+    : never
+
+export type ActionsFromEffects<R extends Effects> = { [K in keyof R]: ActionFromEffect<R[K]> }
+
+// TODO: constraint to limit reducers + effects with the same name, to the same payload
+export type Model<S = any, R extends Reducers<S> = any, E extends Effects = any> = {
+  state: S
+  reducers: R
+  // TODO: try to improve these types
+  effects?: (dispatch: any, getState: GetState<any>) => E
+  [key: string]: any
+}
+
+export type ModelDispatch<S, R extends Reducers<S>, E extends Effects> = ActionsFromReducer<S, R> & ActionsFromEffects<E>
+
+export declare function createModel<S, R extends Reducers<S>, E extends Effects>(model: Model<S, R, E>): Model<S, R, E>
+
+export type Models = { [name: string]: Model }
+
+export type ModelsState<M extends Models> = {
+  [K in keyof M]: M[K] extends Model<infer S> ? S : never
+}
+
+export type ModelsDispatch<M extends Models> = {
+  [K in keyof M]: M[K] extends Model<infer S, infer R, infer E> ? ModelDispatch<S, R, E> : never
+}
 
 export type Context = {
   dispatch: Dispatch
   getState: GetState<any>
   [key: string]: any
 }
-
-export type Model<S = any> = {
-  state: S
-  reducers: Reducers<S>
-  // TODO: getState should be dealing with *root* state, hwo do we define that?
-  effects?: (dispatch: Dispatcher, getState: GetState<any>) => Effects<S>
-  [key: string]: any
-}
-
-export type ModelState<M extends Model> = M extends Model<infer S> ? S : never
-
-export type Models = {
-  [name: string]: Model
-}
-
-export type Effect<S = any, P = any> = (this: Reducers<S>, payload: P) => void
-
-export type Effects<S> = {
-  [key: string]: Effect<S>
-}
-
-export type Reducer<S = any, P = any> = (state: S, payload: P) => S
-
-export type Reducers<S> = {
-  [key: string]: Reducer<S>
-}
-
-export type RootState<M extends Models> = {
-  [K in keyof M]: ModelState<M[K]>
-}
-
-export type Action<P = void> = P extends void ? () => void : (payload: P) => void
-
-export type ReducerAction<R extends Reducer> =
-  R extends Reducer<any, void> ? Action<void> :
-  R extends Reducer<any, infer P> ? Action<P> : never
-
-export type ReducersActions<R extends Reducers<any>> = {
-  [K in keyof R]: ReducerAction<R[K]>
-}
-
-export type ModelDispatchers<M extends Model> = ReducersActions<M['reducers']>
-
-export type ModelsDispatchers<M extends Models> = {
-  [K in keyof M]: ModelDispatchers<M[K]>
-}
-
-export type Dispatcher<M extends Models | void = void> = (M extends Models
-  ? ModelsDispatchers<M>
-  : { [key: string]: { [key: string]: Action } }
-) & Dispatch
-
 
 export interface Plugin {
   // if the plugin adds any state to the store, it needs a name and model
@@ -79,20 +76,18 @@ export interface Config {
 
 export type ConfigModels<C extends Config> = C['models']
 
-export interface RemodeledStore<M extends Models = Models> extends Store<RootState<M>> {
-  dispatch: Dispatch & Dispatcher<M>
-  models: Dispatcher<M>
+export interface Store<M extends Models = Models> extends RdxStore<ModelsState<M>> {
+  dispatch: Dispatch & ModelsDispatch<M>,
 }
 
-export declare function createStore<C extends Config>(config: C): RemodeledStore<ConfigModels<C>>
-
-export declare function createModel<S>(model: Model<S>): Model<S>
+export declare function createStore<C extends Config>(config: C): Store<ConfigModels<C>>
 
 export declare function routingPluginFactory(router: Matcher): Plugin
 
 export type RoutingState = NonNullable<Result>
 
-export interface Routing {
+export interface RoutingDispatch {
+  change(payload: RoutingState): void;
   push(href: string): void;
   replace(href: string): void;
 }

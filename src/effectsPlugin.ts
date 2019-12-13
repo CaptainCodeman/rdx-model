@@ -5,12 +5,10 @@ import { Store, ActionEvent, Action } from "@captaincodeman/rdx";
 export const effectsPlugin: Plugin = {
   onInit() {
     this.effects = {}
-    // we create these because we need to pass the store functions into
-    // the models 'effects' creator function but we can't pass the store
-    // methods themselves because they won't exist at that point, but we
-    // know they will exist by the time we call them so we will pass in
-    // functions that will delegate to those 'functions to come later'
-    this.dispatchWrapper = (action: Action<any>) => this.dispatch(action)
+    // we create this because we need to pass the getState function into
+    // the models 'effects' creator function but the store won't exist
+    // yet so we need a bit of indirection to allow it use a function
+    // that will be provided later on the context
     this.getStateWrapper = () => this.getState()
   },
 
@@ -20,7 +18,7 @@ export const effectsPlugin: Plugin = {
     }
 
     const dispatcher = this.dispatcher[name]
-    const modelEffects = model.effects.call(dispatcher, this.dispatchWrapper, this.getStateWrapper)
+    const modelEffects = model.effects.call(dispatcher, this.dispatcher, this.getStateWrapper)
 
     for (const key in modelEffects) {
       const type = createDispatcher(this, name, key)

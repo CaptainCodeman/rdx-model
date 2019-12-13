@@ -15,18 +15,18 @@ export const routingPluginFactory = (router: Matcher) => {
           change: (_state, payload: RoutingState): RoutingState => {
             return payload
           }
-        }
+        },
+        effects: (_dispatch, _getState) => ({
+          push(href: string) {
+            history.pushState(null, '', href)
+            dispatchEvent(new Event('popstate'))
+          },
+          replace(href: string) {
+            history.replaceState(null, '', href)
+            dispatchEvent(new Event('popstate'))
+          },
+        }),
       }),
-      effects: {
-        push(href: string) {
-          history.pushState(null, '', href)
-          dispatchEvent(new Event('popstate'))
-        },
-        replace(href: string) {
-          history.replaceState(null, '', href)
-          dispatchEvent(new Event('popstate'))
-        },
-      },
     },
 
     onStore(_store: Store) {
