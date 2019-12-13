@@ -48,7 +48,7 @@ async function startListener(router: Matcher, dispatch: any) {
   // depending on whether they want download support etc... (save bytes?)
   const handler = (e: MouseEvent) => {
     // ignore right-clicks / modifier keys (allow normal browser behavior)
-    if ((e.button && e.button !== 0) || e.metaKey || e.altKey || e.ctrlKey ||  e.shiftKey || e.defaultPrevented) {
+    if ((e.button && e.button !== 0) || e.metaKey || e.altKey || e.ctrlKey || e.shiftKey || e.defaultPrevented) {
       return
     }
 
@@ -57,7 +57,7 @@ async function startListener(router: Matcher, dispatch: any) {
     // ... but probably not worth it
 
     // ignore non-anchor clicks, window target, download and external links
-    const anchor = <HTMLAnchorElement>e.composedPath().find(n => (n as HTMLElement).tagName === 'A')//[0]
+    const anchor = <HTMLAnchorElement>e.composedPath().find(n => (n as HTMLElement).tagName === 'A')
     if (!anchor || anchor.target || anchor.hasAttribute('download') || anchor.getAttribute('rel') === 'external') {
       return
     }

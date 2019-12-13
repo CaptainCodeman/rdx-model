@@ -11,7 +11,7 @@ export type Model<S = any> = {
   state: S
   reducers: Reducers<S>
   // TODO: getState should be dealing with *root* state, hwo do we define that?
-  effects?: (dispatch: Dispatch, getState: GetState<any>) => Effects<S>
+  effects?: (dispatch: Dispatcher, getState: GetState<any>) => Effects<S>
   [key: string]: any
 }
 
@@ -53,7 +53,11 @@ export type ModelsDispatchers<M extends Models> = {
   [K in keyof M]: ModelDispatchers<M[K]>
 }
 
-export type Dispatcher<M extends Models> = ModelsDispatchers<M>
+export type Dispatcher<M extends Models | void = void> = (M extends Models
+  ? ModelsDispatchers<M>
+  : { [key: string]: { [key: string]: Action } }
+) & Dispatch
+
 
 export interface Plugin {
   // if the plugin adds any state to the store, it needs a name and model
@@ -84,7 +88,7 @@ export declare function createStore<C extends Config>(config: C): RemodeledStore
 
 export declare function createModel<S>(model: Model<S>): Model<S>
 
-export declare function  routingPluginFactory(router: Matcher): Plugin
+export declare function routingPluginFactory(router: Matcher): Plugin
 
 export type RoutingState = NonNullable<Result>
 

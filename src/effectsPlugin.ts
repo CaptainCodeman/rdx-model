@@ -1,6 +1,6 @@
 import { Plugin, Model } from "../typings";
 import { createDispatcher } from "./dispatchPlugin";
-import { Store, ActionEvent, Dispatch, GetState, Action } from "@captaincodeman/rdx";
+import { Store, ActionEvent, Action } from "@captaincodeman/rdx";
 
 export const effectsPlugin: Plugin = {
   onInit() {
@@ -19,13 +19,12 @@ export const effectsPlugin: Plugin = {
       return
     }
 
-    const effects = model.effects(this.dispatchWrapper, this.getStateWrapper)
-
     const dispatcher = this.dispatcher[name]
+    const modelEffects = model.effects.call(dispatcher, this.dispatchWrapper, this.getStateWrapper)
 
-    for (const key in effects) {
+    for (const key in modelEffects) {
       const type = createDispatcher(this, name, key)
-      const effect = effects[key].bind(dispatcher)
+      const effect = modelEffects[key].bind(dispatcher)
 
       // effects are a list, because multiple models may want to listen to the same 
       // action type (e.g. routing/change) and we want to trigger _all_ of them ...
@@ -38,16 +37,16 @@ export const effectsPlugin: Plugin = {
   },
 
   onStore(store: Store) {
-    // TODO: if any model had an 'init' effect, execute it automatically to provide
-    // an easy "run this on startup" for any model (e.g. to pre-load data or whatever)
-    
     store.addEventListener('state', async e => {
       const { action } = (<CustomEvent<ActionEvent>>e).detail
       const effects = this.effects[action.type!]
       if (effects) {
         // allow the triggering action to be reduced first
         await Promise.resolve()
-        await Promise.all(effects.map(effect => effect(action.payload)))
+
+        // does await allow us to call other effects? do we want / need that?
+        // await Promise.all(effects.map(effect => effect(action.payload)))
+        effects.forEach(effect => effect(action.payload))
       }
     })
   },

@@ -5,7 +5,6 @@ import { Config, RemodeledStore, ConfigModels, Plugin, Dispatcher, Context } fro
 import { Store, combineReducers, Action, Reducer } from '@captaincodeman/rdx';
 
 // TODO: should effectsPlugin be 'core'? What if we provide a saga plugin instead?
-// like the devtools, we could provide an importable definition can could be passed in
 const corePlugins: Plugin[] = [dispatchPlugin, effectsPlugin]
 
 export const createStore = <C extends Config>(config: C): RemodeledStore<ConfigModels<C>> => {
