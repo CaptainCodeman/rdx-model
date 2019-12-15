@@ -327,6 +327,7 @@ TODO: how store dispatch and state types work for a fully type-safe store
 ## Unit Testing
 
 TODO: helpers to make testing models easier
+TODO: dtslint tests for type transformations
 
 ## Real-world benchmarks
 
