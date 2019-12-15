@@ -74,14 +74,27 @@ export interface Store<M extends Models = Models> extends RdxStore<ModelsState<M
 
 export declare function createStore<C extends Config>(config: C): Store<ConfigModels<C>>
 
-export declare function routingPluginFactory(router: Matcher): Plugin
+export declare function routingPluginFactory(router: Matcher, options?: Partial<RoutingOptions>): Plugin
+export declare function fullRoutingPluginFactory(router: Matcher): Plugin
 
-export type RoutingState = NonNullable<Result>
+export type RoutingState = NonNullable<Result> & {
+  queries?: {
+    [key: string]: string | string[]
+  }
+}
 
 export interface RoutingDispatch {
   change(payload: RoutingState): void;
   push(href: string): void;
   replace(href: string): void;
 }
+
+export interface RoutingOptions {
+  handler: (e: MouseEvent) => void
+  transform: (result: Result) => RoutingState
+}
+
+export function fullClickHandler(e: MouseEvent): void
+export function withQuerystring(result: Result): RoutingState
 
 export const routingChange = 'routing/change'
