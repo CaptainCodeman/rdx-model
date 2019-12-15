@@ -2,7 +2,7 @@
 
 A small wrapper for [rdx](https://github.com/CaptainCodeman/js-rdx), my tiny Redux alternative, which makes bundling a state model small and simple.
 
-It's tiny, just 1.1 Kb gzipped, and reduces the amount of code you need to write in your app, so can help to reduce total bundle size.
+It's tiny, just 1 Kb gzipped, and reduces the amount of code you need to write in your app, so can help to reduce total bundle size.
 
 ## About
 
@@ -11,15 +11,31 @@ see [redesigning-redux](https://hackernoon.com/redesigning-redux-b2baee8b8a38).
 
 This brings that same approach to `rdx` and allows you to define your state models in a very small and compact way, without verbose boilerplate code.
 
-See the [example app](https://github.com/CaptainCodeman/rdx-example)
+See a [live example](https://captaincodeman.github.io/rdx-example/) or checkout the [source code](https://github.com/CaptainCodeman/rdx-example). The usage example below is based on this example.
 
 ## Usage
 
-The package provides helpers to create the store for you and plugins to add common functionality such as routing. I won't show how to create a very basic store, because it's almost too trivial, so let's look at tha typical store for a real app.
+The package provides helpers to create the store for you and plugins to add common functionality such as routing.
 
 ### createStore
 
-First, we'll define our routes using a [tiny client-side router package](https://github.com/CaptainCodeman/js-router):
+At it's core, the package helps create a store instance for you and wires up dispatch and async effects for yor models. It's starts like this, we'll see where the `models` come from later:
+
+store/index.ts
+```ts
+import { createStore } from '@captaincodeman/rdx-model'
+import * as models from './models'
+
+export const store = createStore({ models })
+```
+
+The store that is created is a regular `rdx` store with some additional, auto-generated actionCreator-type methods added to the `dispatch` method to make using the store easier ... we'll get to those later.
+
+### plugins and extensions
+
+If we require additional store functionality, that can be added by wrapping the store or providing plugins. Lets add state persistence and hydration using `localStorage` and also wire up the redux devtools extension  (both provided by `rdx`) plus add routing using a plugin provided by this package.
+
+First, we'll define our routes in a separate file using a [tiny client-side router package](https://github.com/CaptainCodeman/js-router):
 
 store/routes.ts
 ```ts
@@ -35,24 +51,7 @@ const routes = {
 export const routeMatcher = createMatcher(routes)
 ```
 
-We'll import the exported `routeMatcher` and use it to create a `routingPlugin`, this will provide us with route information in our state. We then use the `createStore` helper to create an instance of the `rdx` store:
-
-store/index.ts
-```ts
-import { createStore, routingPluginFactory } from '@captaincodeman/rdx-model'
-import { routeMatcher } from './routes'
-import * as models from './models'
-
-const routingPlugin = routingPluginFactory(routeMatcher)
-
-export const store = createStore({ models, plugins: [routingPlugin] })
-```
-
-The store that is created is a regular `rdx` store with some additional methods added to the `dispatch` method ... we'll get to those later.
-
-### plugins and extensions
-
-If we require extra functionality, that can be added by wrapping the store or providing plugins. Lets add persistence to `localStorage` and also wire up the redux devtools extension, because it's super-simple, our store setup would become:
+We'll import the exported `routeMatcher` and use it to create a `routingPlugin` instance, this will provide us with route information in our state. We then use the `createStore` helper to create an instance of the `rdx` store. It's only slightly more complex than the first example:
 
 store/index.ts
 ```ts
@@ -68,7 +67,7 @@ export const store = devtools(persist(createStore({ models, plugins: [routingPlu
 
 ### createModel
 
-What about the models that are imported? That's really where all the action is so let's focus on those. All the models are in a separate `/models` module which simply re-exports and names the individual state branches. This makes it easy to manage as the state in your app grows.
+So what about the models that are imported? That's really where all the 'action' is or actions _are_, it's a Redux pun see ... oh, nevermind, anyway let's focus on those. All the models are in a separate `/models` module which simply re-exports and names the individual state branches. This makes it easy to manage as the state in your app grows.
 
 store/models/index.ts
 ```ts
@@ -76,7 +75,7 @@ export { default as counter } from './counter'
 export { default as todos } from './todos'
 ```
 
-The state branches are then defined in their own files. A simple counter state is, well, simple ... because why should it be complicated?
+The state branches are then defined in their own files. A simple counter state is, well, simple ... because why should it _need_ to be complicated?
 
 store/models/counter.ts
 ```ts
@@ -97,9 +96,9 @@ export default createModel({
 })
 ```
 
-The state can be as simple or complex as needed. For this example we could have made the state be the numeric value directly, but that isn't typical in a real app. Likewise, the payload passed to a reducer method can be more than just a single value, it would be the same type of payload than an action typically has. Hmmn ...
+The state can be as simple or complex as needed. For this example we could have made the state be the numeric value directly, but that isn't typical in a real app. Likewise, the payload passed to a reducer method can be more than just a single value, it would be the same type of payload that an action typically has. Hmmn ... can you see where this is going?
 
-The `createModel` helper is really there just to aid typing. It not only defines the initial state but also infers the state type, so it doesn't need to be defined in each reducer function. Each reducer must accept the state as the first parameter and then an optional payload as a second parameter. Why this 'restriction'? Because these reducer methods are transformed into actionCreator-type function that both _create_ the action and _dispatch_ it in a single call.
+The `createModel` helper is really there just to aid typing. It not only defines the initial state but also infers the state type, so it doesn't need to be defined in each reducer function. Each reducer must accept the state as the first parameter and then an optional payload as a second parameter. Why this 'restriction'? Because these reducer methods are transformed into actionCreator-type functions that both _create_ and _dispatch_ an action in a single call.
 
 Take the `add` reducer method on the `counter` state model above. This is converted into a strongly typed method on the store dispatch which allows you to call strongly typed methods to dispatch actions such as:
 
@@ -107,7 +106,7 @@ Take the `add` reducer method on the `counter` state model above. This is conver
 dispatch.counter.add(5)
 ```
 
-To be clear - we're still using a state store and are dispatching actions that go through any middleware and eventually may hit the reducer, we are not just calling the reducer directly as it map appear. We still have immutable and predictable state, just without all the boilerplate code.
+To be clear - we're still using a state store and are dispatching actions that go through any middleware and eventually may hit the reducer, we are not just calling the reducer directly as it may appear. We still have immutable and predictable state, just without all the boilerplate code.
 
 The action type is created automatically based on the name of the model and the name of the reducer function, so the example above would cause an action to be dispatched with the type `counter/add` (which is the naming convention Redux now recommends).
 
@@ -156,7 +155,7 @@ export const counterReducer = (state: CounterState = initialState, action: Count
 store.dispatch(createCounterAdd(2))
 ```
 
-How many times should we have to type 'counter', _really_? That's just one simple action - imagine what happens when we have a large application and multiple actions in multiple state branches? This is where people might say Redux isn't worth it - but what Redux does is definitely worthwhile, if only it wasn't so complex.
+How many times should we have to type 'counter', _really_? That's just one simple action - imagine what happens when we have a large application and multiple actions in multiple state branches? This is where people might say Redux isn't worth it - but what Redux _does_ is definitely worthwhile, it's just that it does it in a complex way.
 
 Yes, some of this is deliberately verbose to make the point and there are various helpers that can be used to reduce some of the pain points (at the cost of extra code), but Redux definitely has some overhead - it's not simple to use and the extra code doesn't really add any value and it becomes complex to work with as it's often spread across multiple files, sometimes even multiple folders.
 
@@ -196,15 +195,15 @@ export interface TodosState {
 }
 
 export default createModel({
-  // our initial state (will be used if nothing has been provided by any 
-  // persistence plugin)
+  // our initial model state
   state: <TodosState>{
     entities: {},
     ids: [],
     selected: 0,
     loading: false,
   },
-  // our reducers
+
+  // our state reducers
   reducers: {
     // select indicates the selected todo id, it will be called when we go
     // to a route such as /todos/123
@@ -293,6 +292,8 @@ export default createModel({
 })
 ```
 
+Yes, it's more code than the counter model, but it's a lot less code to write than the Redux equivalent and it contributes less to the JS bundle for your app.
+
 Note that the effects are dispatchable just like the reducers and they show up in the devtools just the same. In the example above, calling `dispatch.todos.select(123)` would dispatch an action that would hit the reducer and _then_ the effect of the same name. Whereas calling `dispatch.todos.load()` would still dispatch an action but only run the effect (as there is no matching reducer).
 
 We can also listen for actions dispatched from other state models, in both the reducers and effects functions. We've seen how this is done to listen for route changes but there are often cases where we may want to act on our local state based on some other dispatched action. As an example, we could clear data from the store when the auth model dispatches a signout action:
@@ -302,7 +303,7 @@ export default createModel({
   state,
   reducers: {
     // ... existing model reducers
-    
+
     // when user signs out, remove data from state
     'auth/signout': (state) => {
       return { ...state, data: [] }
@@ -326,6 +327,10 @@ TODO: how store dispatch and state types work for a fully type-safe store
 ## Unit Testing
 
 TODO: helpers to make testing models easier
+
+## Real-world benchmarks
+
+TODO: document bundle size and perf gains by switching to rdx / rdx-model
 
 ## Future Plans
 
