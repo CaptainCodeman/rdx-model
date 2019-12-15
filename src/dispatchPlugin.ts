@@ -1,25 +1,21 @@
-import { Plugin, Model, Context } from "../typings";
+import { Plugin, Model, Store } from "../typings";
 import { actionType } from "actionType";
 
-export const createDispatcher = (context: Context, name: string, key: string) => {
+export const createDispatcher = (store: Store, name: string, key: string) => {
   const type = actionType(name, key)
-  context.dispatcher[name][key] = (payload?: any): any => {
+  store.dispatch[name][key] = (payload?: any): any => {
     const action = { type, ...(payload !== undefined && { payload }) }
-    return context.dispatch(action)
+    return store.dispatch(action)
   }
   return type
 }
 
 export const dispatchPlugin: Plugin = {
-  onInit() {
-    this.dispatcher = {}
-  },
-
-  onModel(name: string, model: Model) {
-    this.dispatcher[name] = {}
+  onModel(store: Store, name: string, model: Model) {
+    store.dispatch[name] = {}
 
     for (const key in model.reducers) {
-      createDispatcher(this, name, key)
+      createDispatcher(store, name, key)
     }
   }
 }

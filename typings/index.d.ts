@@ -50,22 +50,14 @@ export type ModelsDispatch<M extends Models> = {
   [K in keyof M]: M[K] extends Model<infer S, infer R, infer E> ? ModelDispatch<S, R, E> : never
 }
 
-export type Context = {
-  dispatch: Dispatch
-  getState: GetState<any>
-  [key: string]: any
-}
-
 export interface Plugin {
   // if the plugin adds any state to the store, it needs a name and model
   state?: {
     name: string
     model: Model
   }
-  exposed?: any
-  onInit?(this: Context): void
-  onStore?(this: Context, store: Store): void
-  onModel?<M extends Model>(this: Context, name: string, model: M): void
+  onModel?<M extends Model>(store: Store, name: string, model: M): void
+  onStore?(store: Store): void
 }
 
 export interface Config {
