@@ -114,7 +114,12 @@ If we were using Redux we might have code that looks more like this:
 
 ```ts
 export enum CounterTypes {
+  COUNTER_INC: 'COUNTER_INC'
   COUNTER_ADD: 'COUNTER_ADD'
+}
+
+export interface CounterInc {
+  readonly type: COUNTER_INC
 }
 
 export interface CounterAdd {
@@ -122,7 +127,13 @@ export interface CounterAdd {
   readonly payload: number
 }
 
-export type CounterActions = CounterAdd // | CounterInc | CounterDec etc...
+export type CounterActions = CounterInc | CounterAdd
+
+export const createCounterInc = () => {
+  return <CounterInc>{
+    type: COUNTER_INC,
+  }
+}
 
 export const createCounterAdd = (value: number) => {
   return <CounterAdd>{
@@ -141,11 +152,18 @@ const initialState: CounterState = {
 
 export const counterReducer = (state: CounterState = initialState, action: CounterActions) => {
   switch (action.type) {
+    case CounterTypes.COUNTER_INC:
+      return {
+        ...state,
+        count: state.count + 1
+      };
+
     case CounterTypes.COUNTER_ADD:
       return {
         ...state,
         count: state.count + action.payload
       };
+
     default:
       return state
   }
@@ -155,13 +173,13 @@ export const counterReducer = (state: CounterState = initialState, action: Count
 store.dispatch(createCounterAdd(2))
 ```
 
-How many times should we have to type 'counter', _really_? That's just one simple action - imagine what happens when we have a large application and multiple actions in multiple state branches? This is where people might say Redux isn't worth it - but what Redux _does_ is definitely worthwhile, it's just that it does it in a complex way.
+How many times should we have to type 'counter', _really_? So many potential gotchas to make a mistake. That's just one simple state branch - imagine what happens when we have a large application and multiple actions in multiple state branches? This is where people might say Redux isn't worth it and is overkill - but what Redux _does_ is definitely worthwhile, it's just that it does it in a complex way.
 
 Yes, some of this is deliberately verbose to make the point and there are various helpers that can be used to reduce some of the pain points (at the cost of extra code), but Redux definitely has some overhead - it's not simple to use and the extra code doesn't really add any value and it becomes complex to work with as it's often spread across multiple files, sometimes even multiple folders.
 
 ### async effects
 
-A counter is the simplest canonical example of a reducer. Often you need to have a combination of state and reducers plus some 'side-effects' - async functions can can be dispatched (thunks) or that can execute in response to the synchronous actions that go through the store, often as middleware. We have that covered ...
+A counter is the simplest canonical example of a reducer. Often you need to have a combination of state and reducers plus some 'side-effects' - async functions can can be dispatched (thunks) or that can execute in response to the synchronous actions that go through the store, often as middleware. We have that covered! Oh, and there's no middleware to add, all the functionality is baked into the `createStore` that we saw earlier.
 
 Let's look at something more complex, the state for a 'todo' app which needs to handle async fetching of data from a REST API. We want to only fetch data when we don't already have it and what we need to fetch will depend on the route we're on - if we go from a list view to a single-item view, we don't need to fetch that single item as we already have it, but if our first view is the single item we want to fetch just that, and then fetch the list if we navigate in the other direction.
 
