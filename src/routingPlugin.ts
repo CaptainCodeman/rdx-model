@@ -29,8 +29,8 @@ export const routingPluginFactory = (router: Matcher) => {
       }),
     },
 
-    onStore(_store: Store) {
-      startListener(router, this.dispatcher)
+    onStore(store: Store) {
+      startListener(router, store.dispatch)
     }
   } as Plugin
 }

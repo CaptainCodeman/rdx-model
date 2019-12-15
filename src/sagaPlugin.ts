@@ -109,10 +109,6 @@ export async function runSaga(store, saga, ...args) {
 }
 
 export const sagaPlugin: Plugin = {
-  onInit() {
-    this.sagas = {}
-  },
-
   onModel(name: string, model: Model) {
     if (!model.sagas) {
       return
