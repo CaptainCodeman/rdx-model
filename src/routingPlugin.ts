@@ -4,9 +4,8 @@ import { createModel } from 'createModel';
 import { Store } from '@captaincodeman/rdx';
 
 export const routingPluginFactory = (router: Matcher, options?: Partial<RoutingOptions>) => {
-  // TODO: pass options, e.g. whether to include querystring object in routing state (?)
   const opt = <RoutingOptions>{
-    handler: defaultHandler,
+    handler: simpleClickHandler,
     transform: (result) => result,
     ...options,
   }
@@ -62,12 +61,12 @@ export const routingPluginFactory = (router: Matcher, options?: Partial<RoutingO
   } as Plugin
 }
 
-const defaultHandler = (e: MouseEvent) => {
-  // ignore non-anchor clicks, window target, download and external links
+const simpleClickHandler = (e: MouseEvent) => {
+  // ignore non-anchor clicks
   const anchor = <HTMLAnchorElement>e.composedPath().find(n => (n as HTMLElement).tagName === 'A')
   if (anchor) {
-    const href = anchor.href
     e.preventDefault()
+    const href = anchor.href
     if (href && href !== location.href) {
       history.pushState(null, '', href)
       dispatchEvent(new Event('popstate'))
@@ -75,7 +74,7 @@ const defaultHandler = (e: MouseEvent) => {
   }
 }
 
-export const fullHandler = (e: MouseEvent) => {
+export const fullClickHandler = (e: MouseEvent) => {
   // ignore right-clicks / modifier keys (allow normal browser behavior)
   if ((e.button && e.button !== 0) || e.metaKey || e.altKey || e.ctrlKey || e.shiftKey || e.defaultPrevented) {
     return
@@ -109,7 +108,7 @@ export const fullHandler = (e: MouseEvent) => {
 export const withQuerystring = (result: Result) => {
   const params = new URLSearchParams(location.search)
   const queries = parseQuery(params)
-  return { ...result, ...queries }
+  return <RoutingState>{ ...result, queries }
 }
 
 function parseQuery(params: URLSearchParams) {
@@ -129,3 +128,8 @@ function parseQuery(params: URLSearchParams) {
   }
   return q
 }
+
+export const fullRoutingPluginFactory = (router: Matcher) => routingPluginFactory(router, {
+  handler: fullClickHandler,
+  transform: withQuerystring,
+})
