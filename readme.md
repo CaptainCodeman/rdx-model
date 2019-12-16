@@ -155,13 +155,13 @@ export const counterReducer = (state: CounterState = initialState, action: Count
     case CounterTypes.COUNTER_INC:
       return {
         ...state,
-        count: state.count + 1
+        value: state.value + 1
       };
 
     case CounterTypes.COUNTER_ADD:
       return {
         ...state,
-        count: state.count + action.payload
+        value: state.value + action.payload
       };
 
     default:
