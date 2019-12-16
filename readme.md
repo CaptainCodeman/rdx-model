@@ -51,7 +51,7 @@ const routes = {
 export const routeMatcher = createMatcher(routes)
 ```
 
-We'll import the exported `routeMatcher` and use it to create a `routingPlugin` instance, this will provide us with route information in our state. We then use the `createStore` helper to create an instance of the `rdx` store. It's only slightly more complex than the first example:
+We'll import the exported `routeMatcher` and use it to create a `routingPlugin` instance, this will provide us with route information in our state. We then use the `createStore` helper to create an instance of the `rdx` store and this time we'll decorate it with the `devtools` and `persist` enhancers that the `rdx` package provides so we get the integration with Redux DevTools plus state persistence using `localStorage`. It's only slightly more complex than the first example:
 
 store/index.ts
 ```ts
