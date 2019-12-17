@@ -46,9 +46,7 @@ export const routingPluginFactory = (router: Matcher, options?: Partial<RoutingO
       window.addEventListener('popstate', routeChanged)
 
       // listen for click events
-      window.addEventListener('DOMContentLoaded', () => {
-        window.document.body.addEventListener('click', opt.handler)
-      })
+      window.addEventListener('click', opt.handler)
 
       // although we _could_ populate the initial route at create time
       // it makes things easier if the app can listen for "route changes"
