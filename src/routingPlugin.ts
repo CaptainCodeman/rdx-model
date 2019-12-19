@@ -46,7 +46,15 @@ export const routingPluginFactory = (router: Matcher, options?: Partial<RoutingO
       window.addEventListener('popstate', routeChanged)
 
       // listen for click events
-      window.addEventListener('click', opt.handler)
+      window.addEventListener('click', (e: MouseEvent) => {
+        const href = opt.handler(e)
+        // handler returns null if we're not to handle it
+        if (href) {
+          e.preventDefault()
+          history.pushState(null, '', href)
+          dispatchEvent(new Event('popstate'))
+        }
+      })
 
       // although we _could_ populate the initial route at create time
       // it makes things easier if the app can listen for "route changes"
@@ -59,49 +67,53 @@ export const routingPluginFactory = (router: Matcher, options?: Partial<RoutingO
   } as Plugin
 }
 
-const simpleClickHandler = (e: MouseEvent) => {
-  // ignore non-anchor clicks
-  const anchor = <HTMLAnchorElement>e.composedPath().find(n => (n as HTMLElement).tagName === 'A')
-  if (anchor) {
-    e.preventDefault()
-    const href = anchor.href
-    if (href && href !== location.href) {
-      history.pushState(null, '', href)
-      dispatchEvent(new Event('popstate'))
-    }
-  }
+// link is 'internal' to the app if it's within the baseURI of the page (handles sub-apps)
+const isInternal = (a: HTMLAnchorElement) => a.href.startsWith(document.baseURI)
+
+// external isn't just !internal, it's having an attribute explicitly marking it as such
+const isExternal = (a: HTMLAnchorElement) => (a.getAttribute('rel') || '').includes('external')
+
+// download links may be within the app so need to be specifically ignored if utilized
+const isDownload = (a: HTMLAnchorElement) => a.hasAttribute('download')
+
+// if the link is meant to open in a new tab or window, we need to allow it to function
+const isTargeted = (a: HTMLAnchorElement) => a.target
+
+// if a non-default click or modifier key is used with the click, we leave native behavior
+const isSpecialClick = (e: MouseEvent) => (e.button && e.button !== 0) 
+                                        || e.metaKey
+                                        || e.altKey
+                                        || e.ctrlKey
+                                        || e.shiftKey
+                                        || e.defaultPrevented;
+
+// get the anchor element clicked on, taking into account shadowDom components
+const getAnchor = (e: MouseEvent) => <HTMLAnchorElement>e.composedPath().find(n => (n as HTMLElement).tagName === 'A')
+
+// simple handler just ignores external links, but pulls in less code
+export const simpleClickHandler = (e: MouseEvent) => {
+  const anchor = getAnchor(e)
+  return (anchor && isInternal(anchor))
+    ? anchor.href
+    : null
 }
 
-export const fullClickHandler = (e: MouseEvent) => {
-  // ignore right-clicks / modifier keys (allow normal browser behavior)
-  if ((e.button && e.button !== 0) || e.metaKey || e.altKey || e.ctrlKey || e.shiftKey || e.defaultPrevented) {
-    return
-  }
-
-  // ignore non-anchor clicks, window target, download and external links
-  const anchor = <HTMLAnchorElement>e.composedPath().find(n => (n as HTMLElement).tagName === 'A')
-  if (!anchor || anchor.target || anchor.hasAttribute('download') || anchor.getAttribute('rel') === 'external') {
-    return
-  }
-
-  // ignore mailto links
-  const href = anchor.href
-  if (!href || href.indexOf('mailto:') !== -1) {
-    return
-  }
-
-  e.preventDefault()
-
-  // don't trigger repeat clicks on current url
-  if (href !== location.href) {
-    history.pushState(null, '', href)
-    dispatchEvent(new Event('popstate'))
-  }
+// standard handler contains complete logic for what to ignore
+export const clickHandler = (e: MouseEvent) => {
+  const anchor = getAnchor(e)
+  return (anchor
+      && isInternal(anchor) 
+      && !isDownload(anchor) 
+      && !isExternal(anchor) 
+      && !isTargeted(anchor)
+      && !isSpecialClick(e))
+    ? anchor.href
+    : null
 }
 
 // parseQuery creates an additional object based on querystring parameters
-// not every app will use this though so we can save adding it by making it
-// optional
+// not every app will require this so we can make it optional by setting 
+// the transform to withQuerystring
 
 export const withQuerystring = (result: Result) => {
   const params = new URLSearchParams(location.search)
@@ -128,6 +140,6 @@ function parseQuery(params: URLSearchParams) {
 }
 
 export const fullRoutingPluginFactory = (router: Matcher) => routingPluginFactory(router, {
-  handler: fullClickHandler,
+  handler: clickHandler,
   transform: withQuerystring,
 })
