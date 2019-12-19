@@ -89,12 +89,14 @@ export interface RoutingDispatch {
   replace(href: string): void;
 }
 
+export type ClickHandler = (e: MouseEvent) => string | null
 export interface RoutingOptions {
-  handler: (e: MouseEvent) => void
+  handler: ClickHandler
   transform: (result: Result) => RoutingState
 }
 
-export function fullClickHandler(e: MouseEvent): void
+export function simpleClickHandler(e: MouseEvent): string | null
+export function clickHandler(e: MouseEvent): string | null
 export function withQuerystring(result: Result): RoutingState
 
 export const routingChange = 'routing/change'
