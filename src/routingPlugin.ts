@@ -3,9 +3,12 @@ import { Plugin, RoutingState, RoutingOptions, RoutingDispatch } from "../typing
 import { createModel } from 'createModel';
 import { Store } from '@captaincodeman/rdx';
 
+const history = window.history
+const popstate = 'popstate'
+const dispatchPopstate = () => dispatchEvent(new Event(popstate))
+
 export const routingPluginFactory = (router: Matcher, options?: Partial<RoutingOptions>) => {
   const opt = <RoutingOptions>{
-    handler: simpleClickHandler,
     transform: (result) => result,
     ...options,
   }
@@ -16,18 +19,28 @@ export const routingPluginFactory = (router: Matcher, options?: Partial<RoutingO
       model: createModel({
         state: <RoutingState>{ page: '', params: {} },
         reducers: {
-          change: (_state, payload: RoutingState): RoutingState => {
-            return payload
-          }
+          change: (_state, payload: RoutingState): RoutingState => payload
         },
         effects: (_dispatch, _getState) => ({
+          back() {
+            history.back()
+            dispatchPopstate()
+          },
+          forward() {
+            history.forward()
+            dispatchPopstate()
+          },
+          go(payload: number) {
+            history.go(payload)
+            dispatchPopstate()
+          },
           push(href: string) {
             history.pushState(null, '', href)
-            dispatchEvent(new Event('popstate'))
+            dispatchPopstate()
           },
           replace(href: string) {
             history.replaceState(null, '', href)
-            dispatchEvent(new Event('popstate'))
+            dispatchPopstate()
           },
         }),
       }),
@@ -43,16 +56,16 @@ export const routingPluginFactory = (router: Matcher, options?: Partial<RoutingO
           dispatch.change(opt.transform(route))
         }
       }
-      window.addEventListener('popstate', routeChanged)
+      window.addEventListener(popstate, routeChanged)
 
       // listen for click events
       window.addEventListener('click', (e: MouseEvent) => {
-        const href = opt.handler(e)
+        const href = clickHandler(e)
         // handler returns null if we're not to handle it
         if (href) {
           e.preventDefault()
           history.pushState(null, '', href)
-          dispatchEvent(new Event('popstate'))
+          dispatchPopstate()
         }
       })
 
@@ -80,35 +93,27 @@ const isDownload = (a: HTMLAnchorElement) => a.hasAttribute('download')
 const isTargeted = (a: HTMLAnchorElement) => a.target
 
 // if a non-default click or modifier key is used with the click, we leave native behavior
-const isSpecialClick = (e: MouseEvent) => (e.button && e.button !== 0) 
-                                        || e.metaKey
-                                        || e.altKey
-                                        || e.ctrlKey
-                                        || e.shiftKey
-                                        || e.defaultPrevented;
+const isModified = (e: MouseEvent) => (e.button && e.button !== 0) 
+                                    || e.metaKey
+                                    || e.altKey
+                                    || e.ctrlKey
+                                    || e.shiftKey
+                                    || e.defaultPrevented;
 
 // get the anchor element clicked on, taking into account shadowDom components
 const getAnchor = (e: MouseEvent) => <HTMLAnchorElement>e.composedPath().find(n => (n as HTMLElement).tagName === 'A')
 
-// simple handler just ignores external links, but pulls in less code
-export const simpleClickHandler = (e: MouseEvent) => {
-  const anchor = getAnchor(e)
-  return (anchor && isInternal(anchor))
-    ? anchor.href
-    : null
-}
-
 // standard handler contains complete logic for what to ignore
-export const clickHandler = (e: MouseEvent) => {
+const clickHandler = (e: MouseEvent) => {
   const anchor = getAnchor(e)
-  return (anchor
-      && isInternal(anchor) 
-      && !isDownload(anchor) 
-      && !isExternal(anchor) 
-      && !isTargeted(anchor)
-      && !isSpecialClick(e))
-    ? anchor.href
-    : null
+  return anchor === undefined // not a link
+      || !isInternal(anchor) 
+      || isDownload(anchor) 
+      || isExternal(anchor) 
+      || isTargeted(anchor)
+      || isModified(e)
+    ? null
+    : anchor.href
 }
 
 // parseQuery creates an additional object based on querystring parameters
@@ -138,8 +143,3 @@ function parseQuery(params: URLSearchParams) {
   }
   return q
 }
-
-export const fullRoutingPluginFactory = (router: Matcher) => routingPluginFactory(router, {
-  handler: clickHandler,
-  transform: withQuerystring,
-})

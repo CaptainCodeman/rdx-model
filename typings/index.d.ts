@@ -74,8 +74,9 @@ export interface Store<M extends Models = Models> extends RdxStore<ModelsState<M
 
 export declare function createStore<C extends Config>(config: C): Store<ConfigModels<C>>
 
+// === routing ===
+
 export declare function routingPluginFactory(router: Matcher, options?: Partial<RoutingOptions>): Plugin
-export declare function fullRoutingPluginFactory(router: Matcher): Plugin
 
 export type RoutingState = NonNullable<Result> & {
   queries?: {
@@ -89,14 +90,10 @@ export interface RoutingDispatch {
   replace(href: string): void;
 }
 
-export type ClickHandler = (e: MouseEvent) => string | null
 export interface RoutingOptions {
-  handler: ClickHandler
   transform: (result: Result) => RoutingState
 }
 
-export function simpleClickHandler(e: MouseEvent): string | null
-export function clickHandler(e: MouseEvent): string | null
 export function withQuerystring(result: Result): RoutingState
 
 export const routingChange = 'routing/change'
