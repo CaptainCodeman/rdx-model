@@ -86,6 +86,9 @@ export type RoutingState = NonNullable<Result> & {
 
 export interface RoutingDispatch {
   change(payload: RoutingState): void;
+  back(): void;
+  forward(): void;
+  go(payload: number): void;
   push(href: string): void;
   replace(href: string): void;
 }
@@ -107,7 +110,7 @@ export interface ConnectProps {
 }
 
 export interface ConnectEvents {
-  mapEvents?(): { [key: string]: (event: Event) => void }
+  mapEvents?(): DispatchMap
 }
 
 export interface Connectable extends HTMLElement, ConnectProps, ConnectEvents {
