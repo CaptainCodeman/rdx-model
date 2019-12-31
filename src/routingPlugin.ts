@@ -46,7 +46,7 @@ export const routingPluginFactory = (router: Matcher, options?: Partial<RoutingO
       }),
     },
 
-    async onStore(store: Store) {
+    onStore(store: Store) {
       const dispatch: RoutingDispatch = store.dispatch['routing']
       
       // listen for route changes
@@ -71,11 +71,10 @@ export const routingPluginFactory = (router: Matcher, options?: Partial<RoutingO
 
       // although we _could_ populate the initial route at create time
       // it makes things easier if the app can listen for "route changes"
-      // in a consistent way without special-casing it. We await so that
-      // if the devtools middleware is being added, this initial dispatch
-      // can be captured
-      await Promise.resolve()
-      routeChanged()
+      // in a consistent way without special-casing it. We do this using
+      // a microtask so that if the devtools middleware is being added, 
+      // this initial dispatch can be captured by them
+      queueMicrotask(routeChanged)
     }
   } as Plugin
 }

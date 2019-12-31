@@ -3,6 +3,7 @@ import { createDispatcher } from "./dispatchPlugin";
 import { ActionEvent, stateEvent } from "@captaincodeman/rdx";
 
 const effects = {}
+
 export const effectsPlugin: Plugin = {
   onModel(store: Store, name: string, model: Model) {
     if (!model.effects) {
@@ -27,16 +28,13 @@ export const effectsPlugin: Plugin = {
   },
 
   onStore(store: Store) {
-    store.addEventListener(stateEvent, async e => {
+    store.addEventListener(stateEvent, e => {
       const { action } = (<CustomEvent<ActionEvent>>e).detail
-      const actionEffects = effects[action.type!]
-      if (actionEffects) {
+      const runEffects = effects[action.type!]
+      if (runEffects) {
         // allow the triggering action to be reduced first
-        await Promise.resolve()
-
-        // does await allow us to call other effects? do we want / need that?
-        // await Promise.all(effects.map(effect => effect(action.payload)))
-        actionEffects.forEach(effect => effect(action.payload))
+        // before we handle the effect(s) running
+        queueMicrotask(() => runEffects.forEach(effect => effect(action.payload)))
       }
     })
   },
