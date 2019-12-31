@@ -16,7 +16,6 @@ const plugins = [
 export default [{
   input: {
     index: 'src/index.ts',
-    connect: 'src/connect.ts',
     createStore: 'src/createStore.ts',
     createModel: 'src/createModel.ts',
     routing: 'src/routingPlugin.ts',

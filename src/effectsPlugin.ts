@@ -1,6 +1,6 @@
 import { Plugin, Model, Store } from "../typings";
 import { createDispatcher } from "./dispatchPlugin";
-import { ActionEvent } from "@captaincodeman/rdx";
+import { ActionEvent, stateEvent } from "@captaincodeman/rdx";
 
 const effects = {}
 export const effectsPlugin: Plugin = {
@@ -27,7 +27,7 @@ export const effectsPlugin: Plugin = {
   },
 
   onStore(store: Store) {
-    store.addEventListener('state', async e => {
+    store.addEventListener(stateEvent, async e => {
       const { action } = (<CustomEvent<ActionEvent>>e).detail
       const actionEffects = effects[action.type!]
       if (actionEffects) {
