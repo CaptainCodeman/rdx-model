@@ -1,13 +1,9 @@
 import { Store as RdxStore, Dispatch, GetState } from "@captaincodeman/rdx"
 import { Result, Matcher } from "@captaincodeman/router"
 
-export type Action<P = void> = P extends void ? () => void : (payload: P) => void
-
-export type ActionFromReducer<S, R extends Reducer<S>> = R extends Reducer<S, void> 
-  ? Action<void>
-  : R extends Reducer<any, infer P>
-    ? Action<P>
-    : never
+export type ActionFromReducer<S, R extends Reducer<S>> = 
+  R extends (state: S) => S ? () => () => void :
+  R extends (state: S, payload: infer P) => S ? (payload: P) => void : never
 
 export type ActionsFromReducer<S, R extends Reducers<S>> = { [K in keyof R]: ActionFromReducer<S, R[K]> }
 
@@ -19,11 +15,9 @@ export type Effect<P = any> = (payload: P) => void
 
 export type Effects = { [key: string]: Effect }
 
-export type ActionFromEffect<R extends Effect> = R extends Effect<void> 
-  ? Action<void>
-  : R extends Effect<infer P>
-    ? Action<P>
-    : never
+export type ActionFromEffect<R extends Effect> = 
+  R extends () => void ? () => void :
+  R extends (payload: infer P) => void ? (payload: P) => void : never
 
 export type ActionsFromEffects<R extends Effects> = { [K in keyof R]: ActionFromEffect<R[K]> }
 
