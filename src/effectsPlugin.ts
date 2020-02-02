@@ -3,6 +3,7 @@ import { createDispatcher } from "./dispatchPlugin";
 import { ActionEvent, stateEvent } from "@captaincodeman/rdx";
 
 const effects = {}
+const inits: Function[] = []
 
 export const effectsPlugin: Plugin = {
   onModel(store: Store, name: string, model: Model) {
@@ -24,6 +25,10 @@ export const effectsPlugin: Plugin = {
       } else {
         effects[type] = [effect]
       }
+
+      if (key === 'init') {
+        inits.push(effect)
+      }
     }
   },
 
@@ -37,5 +42,7 @@ export const effectsPlugin: Plugin = {
         queueMicrotask(() => runEffects.forEach(effect => effect(action.payload)))
       }
     })
+
+    inits.forEach(effect => effect())
   },
 }

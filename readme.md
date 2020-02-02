@@ -2,7 +2,7 @@
 
 A small wrapper for [rdx](https://github.com/CaptainCodeman/rdx), my tiny Redux alternative, which makes bundling a state model small and simple.
 
-It's tiny, just over 1 Kb gzipped, and reduces the amount of code you need to write in your app so can help to reduce total bundle size.
+It's tiny, just 1.3 Kb gzipped, and reduces the amount of code you need to write in your app so can help to reduce total bundle size.
 
 ## About
 
