@@ -1,21 +1,24 @@
+import { Store as RdxStore, combineReducers, Action, Reducer } from '@captaincodeman/rdx';
+
 import { actionType } from 'actionType';
 import { dispatchPlugin } from 'dispatchPlugin';
 import { effectsPlugin } from 'effectsPlugin';
-import { Config, Store, ConfigModels } from '../typings';
-import { Store as RdxStore, combineReducers, Action, Reducer } from '@captaincodeman/rdx';
 
-const corePlugins = [dispatchPlugin, effectsPlugin]
+import { Config, Store, ConfigModels, Plugins } from '../typings';
+
+const corePlugins: Plugins = { dispatchPlugin, effectsPlugin }
 
 export const createStore = <C extends Config>(config: C): Store<ConfigModels<C>> => {
   const models = { ...config.models }
   
   // add models from plugins
-  const plugins = [...corePlugins, ...config.plugins || []]
-  plugins.forEach(plugin => {
-    if (plugin.state) {
-      models[plugin.state.name] = plugin.state.model
+  const plugins: Plugins = {...corePlugins, ...config.plugins}
+  for (const name in plugins) {
+    const plugin = plugins[name]
+    if (plugin.model) {
+      models[name] = plugin.model
     }
-  })
+  }
 
   // create reducers
   const reducers: { [name: string]: Reducer } = {}
@@ -39,20 +42,22 @@ export const createStore = <C extends Config>(config: C): Store<ConfigModels<C>>
   const store = <Store<ConfigModels<C>>>new RdxStore(initialState, rootReducer)
 
   // give each plugin chance to handle the models
-  plugins.forEach(plugin => {
+  for (const name in plugins) {
+    const plugin = plugins[name]
     if (plugin.onModel) {
       for (const name in models) {
-        plugin.onModel(store, name, models[name])
+        plugin.onModel(<Store>store, name, models[name])
       }
     }
-  })
+  }
 
   // initialize plugins
-  plugins.forEach(plugin => {
+  for (const name in plugins) {
+    const plugin = plugins[name]
     if (plugin.onStore) {
-      plugin.onStore(store)
+      plugin.onStore(<Store>store)
     }
-  })
+  }
 
-  return store
+  return <Store<ConfigModels<C>>>store
 }

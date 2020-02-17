@@ -1,7 +1,8 @@
 import { Matcher, Result } from '@captaincodeman/router'
-import { Plugin, RoutingState, RoutingOptions, RoutingDispatch } from "../typings";
+
 import { createModel } from 'createModel';
-import { Store } from '@captaincodeman/rdx';
+
+import { RoutingState, RoutingOptions, RoutingDispatch, Store } from "../typings";
 
 const history = window.history
 const popstate = 'popstate'
@@ -14,40 +15,39 @@ export const routingPluginFactory = (router: Matcher, options?: Partial<RoutingO
   }
 
   return {
-    state: {
-      name: 'routing',
-      model: createModel({
-        state: <RoutingState>{ page: '', params: {} },
-        reducers: {
-          change: (_state, payload: RoutingState): RoutingState => payload
+    model: createModel({
+      state: <RoutingState>{ page: '', params: {} },
+      reducers: {
+        change: (_state: any, payload: RoutingState): RoutingState => payload
+      },
+      effects: (_dispatch, _getState) => ({
+        back() {
+          history.back()
+          dispatchPopstate()
         },
-        effects: (_dispatch, _getState) => ({
-          back() {
-            history.back()
-            dispatchPopstate()
-          },
-          forward() {
-            history.forward()
-            dispatchPopstate()
-          },
-          go(payload: number) {
-            history.go(payload)
-            dispatchPopstate()
-          },
-          push(href: string) {
-            history.pushState(null, '', href)
-            dispatchPopstate()
-          },
-          replace(href: string) {
-            history.replaceState(null, '', href)
-            dispatchPopstate()
-          },
-        }),
+        forward() {
+          history.forward()
+          dispatchPopstate()
+        },
+        go(payload: number) {
+          history.go(payload)
+          dispatchPopstate()
+        },
+        push(href: string) {
+          history.pushState(null, '', href)
+          dispatchPopstate()
+        },
+        replace(href: string) {
+          history.replaceState(null, '', href)
+          dispatchPopstate()
+        },
       }),
-    },
+    }),
 
     onStore(store: Store) {
-      const dispatch: RoutingDispatch = store.dispatch['routing']
+      // TODO: pass in typed 'this' so it can access it's own dispatch + state
+      // also, name should be whatever name is being assigned to this plugin
+      const dispatch = store.dispatch['routing'] as unknown as RoutingDispatch
       
       // listen for route changes
       const routeChanged = () => {
@@ -76,7 +76,7 @@ export const routingPluginFactory = (router: Matcher, options?: Partial<RoutingO
       // this initial dispatch can be captured by them
       queueMicrotask(routeChanged)
     }
-  } as Plugin
+  }
 }
 
 // link is 'internal' to the app if it's within the baseURI of the page (handles sub-apps)
