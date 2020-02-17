@@ -1,11 +1,13 @@
-import { Plugin, Model, Store } from "../typings";
-import { createDispatcher } from "./dispatchPlugin";
 import { ActionEvent, stateEvent } from "@captaincodeman/rdx";
 
-const effects = {}
+import { createDispatcher } from "./dispatchPlugin";
+
+import { Model, Store, Effect } from "../typings";
+
+const effects: { [type: string]: Effect[] } = {}
 const inits: Function[] = []
 
-export const effectsPlugin: Plugin = {
+export const effectsPlugin = {
   onModel(store: Store, name: string, model: Model) {
     if (!model.effects) {
       return

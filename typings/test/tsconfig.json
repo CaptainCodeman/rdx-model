@@ -1,0 +1,19 @@
+// this additional tsconfig is required by dtslint
+// see: https://github.com/Microsoft/dtslint#typestsconfigjson
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "lib": [
+      "es6",
+      "dom",
+      "dom.iterable"
+    ],
+    "noImplicitAny": true,
+    "noImplicitThis": true,
+    "noUnusedLocals": true,
+    "strictNullChecks": true,
+    "strictFunctionTypes": true,
+    "noEmit": true,
+    "baseUrl": "."
+  }
+}

@@ -364,3 +364,7 @@ Add `selectors` to the models so everything is in one convenient place.
 The effects function could have a `this` context to allow easy calling to it's own actions (reducers + effects). It's not a hard rule but I prefer to make the integration between state be based on the other state listening for actions rather than having it's actions dispatched by another state branch. I'm sure others have put more thought into this than I have an can offer pros vs cons of each approach.
 
 Use defined symbols or constants for action types, especially those provided from plugins (e.g. `router/change`).
+
+## Notes
+
+https://artsy.github.io/blog/2018/11/21/conditional-types-in-typescript/
