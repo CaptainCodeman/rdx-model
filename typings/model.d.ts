@@ -19,7 +19,8 @@ export interface Effects {
   [key: string]: Effect
 }
 
-// TODO: think of a better name for this
+// TODO: think of a better name for this?
+// TODO: for consistency with state, rename dispatch to getDispatch
 export interface EffectStore<D = any, S = any> {
   // dispatch has to be a function that returns the Dispatch for the store
   // otherwise it creates a circular reference when added to the models' effects

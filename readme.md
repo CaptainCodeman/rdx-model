@@ -35,11 +35,13 @@ The store that is created is a regular `rdx` store with some additional, auto-ge
 
 If we require additional store functionality, that can be added by wrapping the store or providing plugins. Lets add state persistence and hydration using `localStorage` and also wire up the redux devtools extension  (both provided by `rdx`) plus add routing using a plugin provided by this package.
 
-First, we'll define our routes in a separate file using a [tiny client-side router package](https://github.com/CaptainCodeman/js-router):
+First, we'll define our store configuration, including routes, in a separate file using a [tiny client-side router package](https://github.com/CaptainCodeman/js-router):
 
-store/routes.ts
+store/config.ts
 ```ts
 import createMatcher from '@captaincodeman/router'
+import { routingPluginFactory } from '@captaincodeman/rdx-model'
+import * as models from './models'
 
 const routes = {
   '/':          'home-view',
@@ -48,22 +50,28 @@ const routes = {
   '/*':         'not-found',
 }
 
-export const routeMatcher = createMatcher(routes)
+const matcher = createMatcher(routes)
+const routing = routingPluginFactory(matcher)
+
+export const config = { models, plugins: { routing } }
 ```
 
-We'll import the exported `routeMatcher` and use it to create a `routingPlugin` instance, this will provide us with route information in our state. We then use the `createStore` helper to create an instance of the `rdx` store and this time we'll decorate it with the `devtools` and `persist` enhancers that the `rdx` package provides so we get the integration with Redux DevTools plus state persistence using `localStorage`. It's only slightly more complex than the first example:
+We'll import the exported `config` and use the `createStore` helper to create an instance of the `rdx` store and this time we'll decorate it with the `devtools` and `persist` enhancers that the `rdx` package provides so we get the integration with Redux DevTools plus state persistence using `localStorage`. It's only slightly more complex than the first example:
 
 store/index.ts
 ```ts
-import { createStore, routingPluginFactory } from '@captaincodeman/rdx-model'
+import { createStore, StoreState, StoreDispatch, EffectStore } from '@captaincodeman/rdx-model'
 import { devtools, persist} from '@captaincodeman/rdx'
-import { routeMatcher } from './routes'
-import * as models from './models'
+import { config } from './config'
 
-const routingPlugin = routingPluginFactory(routeMatcher)
+export const store = devtools(persist(createStore(config)))
 
-export const store = devtools(persist(createStore({ models, plugins: [routingPlugin] })))
+export interface State extends StoreState<typeof config> {}
+export interface Dispatch extends StoreDispatch<typeof config> {}
+export interface Store extends EffectStore<Dispatch, State> {}
 ```
+
+Note the `State`, `Dispatch` and `Store` interfaces provide strongly-typed access to the store.
 
 ### createModel
 
@@ -190,7 +198,7 @@ The state part of this example is just a more complex but still typical example 
 store/models/todos.ts
 ```ts
 import { createModel, RoutingState } from '@captaincodeman/rdx-model';
-import { State, Dispatch } from '../store';
+import { Store } from '../store';
 
 // we're going to use a test endpoint that provides some ready-made data
 const endpoint = 'https://jsonplaceholder.typicode.com/'
@@ -262,13 +270,14 @@ export default createModel({
   },
 
   // our async effects
-  effects: (dispatch: Dispatch, getState) => ({
+  effects: (store: Store) => ({
     // after a todo is selected, we check if it is loaded or not
     // if it isn't loaded we dispatch the 'request' action followd by
     // the 'received' action. In real life we'd handle failures using a
     // 'failed' action to record the error message (for use in the UI).
     async select(payload) {
-      const state: State = getState()
+      const dispatch = store.getDispatch()
+      const state = store.getState()
       if (!state.todos.entities[state.todos.selected]) {
         dispatch.todos.request()
         const resp = await fetch(`${endpoint}todos/${payload}`)
@@ -281,7 +290,8 @@ export default createModel({
     // view URL but we avoid re-requesting them if we already have the
     // data
     async load() {
-      const state: State = getState()
+      const dispatch = store.getDispatch()
+      const state = store.getState()
       if (!state.todos.ids.length) {
         dispatch.todos.request()
         const resp = await fetch(`${endpoint}todos`)
@@ -297,6 +307,7 @@ export default createModel({
     // dispatch the appropriate actions which will cause data to be loaded
     // if required (see effect methods above)
     'routing/change': async function(payload: RoutingState) {
+      const dispatch = store.getDispatch()
       switch (payload.page) {
         case 'todos-view':
           dispatch.todos.load()
