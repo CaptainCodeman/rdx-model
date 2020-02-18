@@ -13,7 +13,7 @@ const routes = {
 const matcher = createMatcher(routes);
 const routing = routingPluginFactory(matcher);
 
-const config = {
+const configWithRouting = {
   models: {
     count: createModel({
       state: 0,
@@ -32,9 +32,9 @@ const config = {
   }
 };
 
-type dispatch = StoreDispatch<typeof config>;
+type dispatchWithRouting = StoreDispatch<typeof configWithRouting>;
 
-assert<Has<dispatch, {
+assert<Has<dispatchWithRouting, {
   count: { 
     inc: () => void,
     incBy: (payload: number) => void
@@ -49,9 +49,40 @@ assert<Has<dispatch, {
   },
 }>>(true);
 
-type state = StoreState<typeof config>;
+type stateWithRouting = StoreState<typeof configWithRouting>;
 
 assert<IsExact<{
   count: number,
   routing: RoutingState,
-}, state>>(true);
+}, stateWithRouting>>(true);
+
+const configNoPlugins = {
+  models: {
+    count: createModel({
+      state: 0,
+      reducers: {
+        inc(state) {
+          return state + 1;
+        },
+        incBy(state, val: number) {
+          return state + val;
+        },
+      }
+    }),
+  },
+};
+
+type dispatchNoPlugins = StoreDispatch<typeof configNoPlugins>;
+
+assert<Has<dispatchNoPlugins, {
+  count: { 
+    inc: () => void,
+    incBy: (payload: number) => void
+  },
+}>>(true);
+
+type stateNoPlugins = StoreState<typeof configNoPlugins>;
+
+assert<IsExact<{
+  count: number,
+}, stateNoPlugins>>(true);

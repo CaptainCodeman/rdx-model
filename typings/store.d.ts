@@ -32,7 +32,7 @@ type KeysOfPluginsWithModels<P extends Plugins> = {
   [K in keyof P]: undefined extends ExtractPluginModel<P[K]> ? never : K
 }[keyof P];
 
-type PluginsModels<P> = P extends Plugins ? ExtractModelsFromPlugins<Pick<P, KeysOfPluginsWithModels<P>>> : never;
+type PluginsModels<P> = P extends Plugins ? ExtractModelsFromPlugins<Pick<P, KeysOfPluginsWithModels<P>>> : unknown;
 
 type ExtractConfigPlugins<C extends Config> = C['plugins']
 
