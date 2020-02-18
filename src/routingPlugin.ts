@@ -20,7 +20,7 @@ export const routingPluginFactory = (router: Matcher, options?: Partial<RoutingO
       reducers: {
         change: (_state: any, payload: RoutingState): RoutingState => payload
       },
-      effects: (_dispatch, _getState) => ({
+      effects: (_store: any) => ({
         back() {
           history.back()
           dispatchPopstate()

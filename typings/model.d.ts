@@ -1,7 +1,7 @@
-import { Dispatch as RdxDispatch, GetState } from "@captaincodeman/rdx"
+import { GetState } from "@captaincodeman/rdx"
 import { ModelsDispatch, Models } from "./models"
 
-export type Dispatch = RdxDispatch & {
+export type Dispatch = {
   [model: string]: {
     [action: string]: Effect
   }
@@ -19,11 +19,19 @@ export interface Effects {
   [key: string]: Effect
 }
 
+// TODO: think of a better name for this
+export interface EffectStore<D = any, S = any> {
+  // dispatch has to be a function that returns the Dispatch for the store
+  // otherwise it creates a circular reference when added to the models' effects
+  dispatch: () => D
+  getState: GetState<S>
+}
+
 // TODO: constraint to limit reducers + effects with the same name, to the same payload
 export interface Model<S = any, R extends Reducers<S> = any, E extends Effects = any> {
   state: S
   reducers: R
-  effects?: (dispatch: any, getState: GetState) => E
+  effects?: (store: EffectStore) => E
   [key: string]: any
 }
 

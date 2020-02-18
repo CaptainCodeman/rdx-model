@@ -14,7 +14,10 @@ export const effectsPlugin = {
     }
 
     const dispatcher = store.dispatch[name]
-    const modelEffects = model.effects(store.dispatch, () => store.state)
+    const modelEffects = model.effects({
+      dispatch: () => store.dispatch,
+      getState: () => store.state
+    })
 
     for (const key in modelEffects) {
       const type = createDispatcher(store, name, key)
