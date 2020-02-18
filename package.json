@@ -1,6 +1,6 @@
 {
   "name": "@captaincodeman/rdx-model",
-  "version": "1.0.0-rc.4",
+  "version": "1.0.0-rc.5",
   "description": "",
   "type": "module",
   "module": "lib/index.js",
