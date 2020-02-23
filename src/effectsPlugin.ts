@@ -13,7 +13,6 @@ export const effectsPlugin = {
       return
     }
 
-    const dispatcher = store.dispatch[name]
     const modelEffects = model.effects({
       dispatch: () => store.dispatch,
       getState: () => store.state
@@ -21,7 +20,7 @@ export const effectsPlugin = {
 
     for (const key in modelEffects) {
       const type = createDispatcher(store, name, key)
-      const effect = modelEffects[key].bind(dispatcher)
+      const effect = modelEffects[key]
 
       // effects are a list, because multiple models may want to listen to the same 
       // action type (e.g. routing/change) and we want to trigger _all_ of them ...
