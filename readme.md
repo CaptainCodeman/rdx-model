@@ -276,7 +276,7 @@ export default createModel({
     // the 'received' action. In real life we'd handle failures using a
     // 'failed' action to record the error message (for use in the UI).
     async select(payload) {
-      const dispatch = store.getDispatch()
+      const dispatch = store.dispatch()
       const state = store.getState()
       if (!state.todos.entities[state.todos.selected]) {
         dispatch.todos.request()
@@ -290,7 +290,7 @@ export default createModel({
     // view URL but we avoid re-requesting them if we already have the
     // data
     async load() {
-      const dispatch = store.getDispatch()
+      const dispatch = store.dispatch()
       const state = store.getState()
       if (!state.todos.ids.length) {
         dispatch.todos.request()
@@ -307,7 +307,7 @@ export default createModel({
     // dispatch the appropriate actions which will cause data to be loaded
     // if required (see effect methods above)
     'routing/change': async function(payload: RoutingState) {
-      const dispatch = store.getDispatch()
+      const dispatch = store.dispatch()
       switch (payload.page) {
         case 'todos-view':
           dispatch.todos.load()
